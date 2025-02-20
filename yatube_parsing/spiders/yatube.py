@@ -1,5 +1,7 @@
 import scrapy
 
+from yatube_parsing.items import YatubeParsingItem
+
 
 class YatubeSpider(scrapy.Spider):
     name = "yatube"
@@ -8,11 +10,13 @@ class YatubeSpider(scrapy.Spider):
 
     def parse(self, response):
         for post in response.css('div.card-body'):
-            yield {
+            yield YatubeParsingItem(
+                {
                 'author': '@' + post.css("p.card-text a::attr(href)").get().strip('/'),
                 'text': ' '.join(post.css("p.card-text::text").getall()).strip(),
                 'date': post.css("small.text-muted::text").get()
-            }
+                }
+            )
         next_page = response.css('ul.pagination').xpath('//li[last()]').css('a::attr(href)').get()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
